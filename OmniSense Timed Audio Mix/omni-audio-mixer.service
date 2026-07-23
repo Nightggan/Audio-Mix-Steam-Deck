@@ -1,0 +1,11 @@
+[Unit]
+Description=Mix actual audio output with OmniSense Dongle
+Requires=pipewire.service
+After=pipewire.service
+
+[Service]
+Type=oneshot
+# -n: no espera el lock
+# -E 0: si el lock ya está tomado, sale con código 0 (no marca error)
+ExecStart=/usr/bin/flock -n -E 0 /run/user/1000/omni-audio-mixer.lock /usr/local/bin/usb-audio-mixer.sh
+Restart=no
