@@ -1,0 +1,12 @@
+[Unit]
+Description=AudioRelay health check - reinicia el servicio si no está corriendo
+
+[Service]
+Type=oneshot
+# -n: no espera el lock
+# -E 0: si el lock ya está tomado, sale con código 0 (no marca error)
+ExecStart=/usr/bin/flock -n -E 0 /run/user/1000/audiorelay-health.lock /usr/local/bin/audiorelay-restart.sh
+Restart=no
+
+[Install]
+WantedBy=default.target

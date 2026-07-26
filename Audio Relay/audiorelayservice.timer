@@ -1,0 +1,11 @@
+[Unit]
+Description=Timer para el health check de AudioRelay
+
+[Timer]
+OnBootSec=5s
+OnUnitActiveSec=10s
+AccuracySec=1s
+Unit=audiorelay-health.service
+
+[Install]
+WantedBy=timers.target
