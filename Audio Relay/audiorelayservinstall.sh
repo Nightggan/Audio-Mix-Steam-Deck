@@ -9,6 +9,8 @@ BUSQUEDA='key="device_capture_id" value="AudioRelay"'
 DESTINOBIN="/home/deck/Apps/audiorelay"
 DESTINOSERV="/home/deck/.config/systemd/user/audiorelay.service"
 DESTINOTIMER="/home/deck/.config/systemd/user/audiorelayservice.timer"
+DESTINOMIXSERV="/home/deck/.config/systemd/user/relay-audio-mixer.service"
+DESTINOMIXTIMER="/home/deck/.config/systemd/user/relay-audio-mixer.timer"
 
 echo "                                                  "
 echo "=================================================="
@@ -37,7 +39,23 @@ if [ -d "$DESTINOBIN" ]; then
     sudo rm -rf "$DESTINOBIN"
 fi
 echo "                                                  "
-echo "4. Desbloqueando sistema de archivos de SteamOS..."
+echo "4. Desactivando timer para servicio Audio Relay Mixer... si existe"
+if [ -f "$DESTINOMIXTIMER" ]; then
+    XDG_RUNTIME_DIR=/run/user/1000 systemctl --user stop omni-audio-mixer.timer 2>/dev/null
+    XDG_RUNTIME_DIR=/run/user/1000 systemctl --user disable omni-audio-mixer.timer 2>/dev/null
+    sudo rm "$DESTINOMIXTIMER"
+    echo "  [OK] Timer detenido correctamente..."
+fi
+echo "                                                  "
+echo "5. Desactivando servicio Audio Relay Mixer... si existe"
+if [ -f "$DESTINOMIXSERV" ]; then
+    XDG_RUNTIME_DIR=/run/user/1000 systemctl --user stop omni-audio-mixer.service 2>/dev/null
+    XDG_RUNTIME_DIR=/run/user/1000 systemctl --user disable omni-audio-mixer.service 2>/dev/null
+    sudo rm "$DESTINOMIXSERV"
+    echo "  [OK] Servicio detenido correctamente..."
+fi
+echo "                                                  "
+echo "6. Desbloqueando sistema de archivos de SteamOS..."
 sudo steamos-readonly disable
 
 echo "                                                  "
@@ -66,9 +84,31 @@ else
     exit 0
 fi
 
+# 3. Copiando archivo de servicio mixer a la ruta de servicios de usuario
+echo "                                                  "
+echo "3. Copiando archivo de servicio mezclador a la ruta de servicios de usuario..."
+if [ -f "$ORIGEN/relay-audio-mixer.service" ]; then
+    sudo cp "$ORIGEN/relay-audio-mixer.service" /home/deck/.config/systemd/user/
+    echo "  [OK] Archivo de servicio copiado correctamente."
+else
+    echo "  [ERROR] No se encontró relay-audio-mixer.service en la carpeta del script."
+    exit 0
+fi
+
+# 3.3 Restaurar Script Mezclador de PipeWire y dar permisos
+echo "                                                  "
+echo "4. Copiando script para servicio mezclador a /usr/local/bin..."
+if [ -f "$ORIGEN/relay-audio-mixer.sh" ]; then
+    sudo cp "$ORIGEN/relay-audio-mixer.sh" /usr/local/bin/
+    sudo chmod +x /usr/local/bin/relay-audio-mixer.sh
+    echo "  [OK] Script de PipeWire restaurado y con permisos de ejecución."
+else
+    echo "  [ERROR] No se encontró relay-audio-mixer.sh en la carpeta."
+fi
+
 # Copia de archivo prefs.xml o edición de uno existente
 echo "                                                  "
-echo "3. Copiando archivo prefs.xml a la ruta de usuario para Audio Relay..."
+echo "5. Copiando archivo prefs.xml a la ruta de usuario para Audio Relay..."
 if [ ! -f "$ARCHPREFS" ]; then
     echo "  [AVISO] El archivo prefs.xml no existe en la ruta destino. Se creará con datos básicos necesarios."
     #Si el archivo no existe en el destino se verifica si el archivo origen existe en la carpeta del script
@@ -93,9 +133,20 @@ else
     fi
 fi
 echo "                                                  "
-echo "4. Habilitando servicio audiorelay.service para el arranque automático..."
+echo "6. Habilitando servicio audiorelay.service para el arranque automático..."
 systemctl --user enable audiorelay.service
-echo "5. Instalando servicio de mantenimiento para reinicio automático de Audio Relay..."
+echo "                                                  "
+echo "7. Instalando timer para servicio mixer de Audio Relay..."
+if [ -f "$ORIGEN/relay-audio-mixer.timer" ]; then
+    mkdir -p /home/deck/.config/systemd/user/
+    cp "$ORIGEN/relay-audio-mixer.timer" /home/deck/.config/systemd/user/
+    echo "  [OK] Timer para servicio mixer restaurado."
+else
+    echo "  [ERROR] No se encontró relay-audio-mixer.timer en la carpeta."
+    exit 0
+fi
+echo "                                                  "
+echo "8. Instalando servicio de mantenimiento para reinicio automático de Audio Relay..."
 if [ -f "$ORIGEN/audiorelay-health.service" ]; then
     mkdir -p /home/deck/.config/systemd/user/
     cp "$ORIGEN/audiorelay-health.service" /home/deck/.config/systemd/user/
@@ -121,7 +172,7 @@ else
     exit 0
 fi
 echo "                                                  "
-echo "6. Aplicando cambios y recargando daemons..."
+echo "9. Aplicando cambios y recargando daemons..."
 
 # A. Primero el sistema global y forzar el disparo de hardware como "add"
 echo "  [INFO] Recargando daemons del sistema global."
@@ -133,11 +184,12 @@ systemctl --user restart wireplumber
 echo "  [INFO] Habilitando timer a nivel de usuario para el servicio."
 sudo runuser -l deck -c "XDG_RUNTIME_DIR=/run/user/1000 systemctl --user daemon-reload"
 sudo runuser -l deck -c "XDG_RUNTIME_DIR=/run/user/1000 systemctl --user enable --now audiorelayservice.timer"
+sudo runuser -l deck -c "XDG_RUNTIME_DIR=/run/user/1000 systemctl --user enable --now relay-audio-mixer.timer"
 
 
 # 5. Volver a activar el modo solo lectura para proteger SteamOS
 echo "                                                  "
-echo "8. Bloqueando sistema de archivos de SteamOS (Seguridad)..."
+echo "10. Bloqueando sistema de archivos de SteamOS (Seguridad)..."
 sudo steamos-readonly enable
 
 

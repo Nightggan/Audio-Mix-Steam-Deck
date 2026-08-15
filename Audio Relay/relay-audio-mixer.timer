@@ -1,0 +1,11 @@
+[Unit]
+Description=Timer for relay-audio-mixer-service
+
+[Timer]
+OnBootSec=5s
+OnUnitActiveSec=5s
+AccuracySec=1s
+Unit=relay-audio-mixer.service
+
+[Install]
+WantedBy=timers.target
