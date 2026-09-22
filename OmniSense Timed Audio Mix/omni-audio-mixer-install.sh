@@ -3,6 +3,8 @@
 ORIGEN="$(dirname "$0")"
 DESTINOSERV="/home/deck/.config/systemd/user/omni-audio-mixer.service"
 DESTINOTIMER="/home/deck/.config/systemd/user/omni-audio-mixer.timer"
+# Ubicacion estandar para scripts de usuario, sobrevive a actualizaciones mayores de SteamOS
+DESTINOBINLOCAL="/home/deck/.local/bin"
 
 echo "                                                  "
 echo "=================================================="
@@ -76,12 +78,13 @@ else
 fi
 
 # 3.3 Restaurar Script Mezclador de PipeWire y dar permisos
-if [ -f "$ORIGEN/usb-audio-mixer.sh" ]; then
-    sudo cp "$ORIGEN/usb-audio-mixer.sh" /usr/local/bin/
-    sudo chmod +x /usr/local/bin/usb-audio-mixer.sh
+if [ -f "$ORIGEN/omni-audio-mixer.sh" ]; then
+    mkdir -p "$DESTINOBINLOCAL"
+    cp "$ORIGEN/omni-audio-mixer.sh" "$DESTINOBINLOCAL/"
+    chmod +x "$DESTINOBINLOCAL/omni-audio-mixer.sh"
     echo "  [OK] Script de PipeWire restaurado y con permisos de ejecución."
 else
-    echo "  [ERROR] No se encontró usb-audio-mixer.sh en la carpeta."
+    echo "  [ERROR] No se encontró omni-audio-mixer.sh en la carpeta."
 fi
 
 # 4. Recargar configuraciones del sistema para aplicar cambios en caliente

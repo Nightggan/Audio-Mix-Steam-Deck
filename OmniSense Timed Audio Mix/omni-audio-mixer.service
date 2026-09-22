@@ -7,5 +7,5 @@ After=pipewire.service
 Type=oneshot
 # -n: no espera el lock
 # -E 0: si el lock ya está tomado, sale con código 0 (no marca error)
-ExecStart=/usr/bin/flock -n -E 0 /run/user/1000/omni-audio-mixer.lock /usr/local/bin/usb-audio-mixer.sh
+ExecStart=/usr/bin/flock -n -E 0 /run/user/1000/omni-audio-mixer.lock /home/deck/.local/bin/omni-audio-mixer.sh
 Restart=no

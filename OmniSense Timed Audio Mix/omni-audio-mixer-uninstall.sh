@@ -34,9 +34,14 @@ if [ -f "/home/deck/.config/systemd/user/omni-audio-mixer.timer" ]; then
 fi
 
 # 5. Eliminar Script Mezclador de PipeWire
+if [ -f "/home/deck/.local/bin/omni-audio-mixer.sh" ]; then
+    rm /home/deck/.local/bin/omni-audio-mixer.sh
+    echo "  [OK] Script de PipeWire eliminado."
+fi
+# Limpieza de instalaciones previas en /usr/local/bin
 if [ -f "/usr/local/bin/usb-audio-mixer.sh" ]; then
     sudo rm /usr/local/bin/usb-audio-mixer.sh
-    echo "  [OK] Script de PipeWire eliminado."
+    echo "  [OK] Script antiguo en /usr/local/bin eliminado."
 fi
 
 # 6. Recargar configuraciones del sistema para limpiar la memoria
