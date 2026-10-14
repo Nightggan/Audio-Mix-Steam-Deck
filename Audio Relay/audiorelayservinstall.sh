@@ -185,6 +185,7 @@ echo "  [INFO] Habilitando timer a nivel de usuario para el servicio."
 sudo runuser -l deck -c "XDG_RUNTIME_DIR=/run/user/1000 systemctl --user daemon-reload"
 sudo runuser -l deck -c "XDG_RUNTIME_DIR=/run/user/1000 systemctl --user enable --now audiorelayservice.timer"
 sudo runuser -l deck -c "XDG_RUNTIME_DIR=/run/user/1000 systemctl --user enable --now relay-audio-mixer.timer"
+sudo runuser -l deck -c "XDG_RUNTIME_DIR=/run/user/1000 systemctl --user start --now relay-audio-mixer.timer"
 
 
 # 5. Volver a activar el modo solo lectura para proteger SteamOS

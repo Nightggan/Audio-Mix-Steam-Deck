@@ -12,23 +12,20 @@ echo "            INICIANDO CHEQUEO PREVIO              "
 echo "=================================================="
 echo "                                                  "
 echo "1. Desactivando servicio ... si existe"
-if [ -f "$DESTINOSERV" ]; then
-    systemctl --user stop omni-audio-mixer.service
-    systemctl --user disable omni-audio-mixer.service
-    sudo rm "$DESTINOSERV"
-    echo "  [OK] Servicio detenido correctamente..."
-else
-    echo "  [INFO] No se encontró el servicio. Continuando..."
-fi
 if [ -f "$DESTINOTIMER" ]; then
-    systemctl --user stop omni-audio-mixer.timer
-    systemctl --user disable omni-audio-mixer.timer
+    sudo runuser -l deck -c "XDG_RUNTIME_DIR=/run/user/1000 systemctl --user disable --now omni-audio-mixer.timer"
     sudo rm "$DESTINOTIMER"
     echo "  [OK] Timer detenido correctamente..."
 else
     echo "  [INFO] No se encontró el Timer de servicio. Continuando..."
 fi
-
+if [ -f "$DESTINOSERV" ]; then
+    sudo runuser -l deck -c "XDG_RUNTIME_DIR=/run/user/1000 systemctl --user disable --now omni-audio-mixer.service"
+    sudo rm "$DESTINOSERV"
+    echo "  [OK] Servicio detenido correctamente..."
+else
+    echo "  [INFO] No se encontró el servicio. Continuando..."
+fi
 echo "                                                  "
 echo "=================================================="
 echo "  INICIANDO RESTAURACIÓN AUTOMÁTICA DE AUDIO USB  "
@@ -99,6 +96,7 @@ sudo systemctl daemon-reload
 echo "  [INFO] Habilitando timer a nivel de usuario para el servicio."
 sudo runuser -l deck -c "XDG_RUNTIME_DIR=/run/user/1000 systemctl --user daemon-reload"
 sudo runuser -l deck -c "XDG_RUNTIME_DIR=/run/user/1000 systemctl --user enable --now omni-audio-mixer.timer"
+sudo runuser -l deck -c "XDG_RUNTIME_DIR=/run/user/1000 systemctl --user start --now omni-audio-mixer.timer"
 
 # 5. Volver a activar el modo solo lectura para proteger SteamOS
 echo "                                                  "
